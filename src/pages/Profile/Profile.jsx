@@ -16,6 +16,15 @@ import api from "../../api/axios";
 import { API_ENDPOINTS } from "../../api/endpoints";
 import { useAuth } from "../../contexts/AuthContext";
 
+const inputBase =
+	"w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-zinc-800 outline-none transition-all";
+const inputActive =
+	"border-zinc-200 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 bg-white";
+const inputDisabled =
+	"border-zinc-100 bg-zinc-50 text-zinc-500 cursor-not-allowed";
+
+const labelClass = "text-xs font-semibold text-zinc-500 mb-1.5 block";
+
 const Profile = () => {
 	const { user, refreshUser } = useAuth();
 	const [editing, setEditing] = useState(false);
@@ -58,18 +67,13 @@ const Profile = () => {
 		setLoading(true);
 		setError(null);
 		setSuccess(false);
-
 		try {
-			// Update the user via the USER_STATUS endpoint (which handles updates)
 			await api.put(API_ENDPOINTS.USER_STATUS(user._id), formData);
-
-			await refreshUser(true); // Get fresh data
+			await refreshUser(true);
 			setSuccess(true);
 			setEditing(false);
-
 			setTimeout(() => setSuccess(false), 3000);
 		} catch (err) {
-			console.error("Profile update error:", err);
 			setError(err.response?.data?.message || "Failed to update profile");
 		} finally {
 			setLoading(false);
@@ -83,29 +87,21 @@ const Profile = () => {
 
 	const handlePasswordSubmit = async (e) => {
 		e.preventDefault();
+		if (passwordData.newPassword !== passwordData.confirmPassword) {
+			setPassError("Passwords do not match");
+			return;
+		}
 		setPassLoading(true);
 		setPassError(null);
 		setPassSuccess(false);
-
-		if (passwordData.newPassword !== passwordData.confirmPassword) {
-			setPassError("New passwords do not match");
-			setPassLoading(false);
-			return;
-		}
-
 		try {
 			await api.put(API_ENDPOINTS.USER_STATUS(user._id), {
 				password: passwordData.newPassword,
 			});
-
 			setPassSuccess(true);
-			setPasswordData({
-				newPassword: "",
-				confirmPassword: "",
-			});
+			setPasswordData({ newPassword: "", confirmPassword: "" });
 			setTimeout(() => setPassSuccess(false), 3000);
 		} catch (err) {
-			console.error("Password update error:", err);
 			setPassError(err.response?.data?.message || "Failed to change password");
 		} finally {
 			setPassLoading(false);
@@ -114,19 +110,21 @@ const Profile = () => {
 
 	if (!user) return null;
 
+	const subsExpired = user.subsValid && new Date(user.subsValid) < new Date();
+
 	return (
-		<div className="w-full space-y-4 py-2 px-2 sm:px-4">
-			{/* Header Section */}
-			<div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-zinc-200">
+		<div className="space-y-4 ">
+			{/* Header */}
+			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-zinc-200 shadow-sm">
 				<div className="flex items-center gap-4">
-					<div className="w-16 h-16 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-indigo-100 shrink-0">
+					<div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-indigo-100 shrink-0">
 						{user.name?.[0]?.toUpperCase() || <FiUser />}
 					</div>
 					<div>
-						<h1 className="text-2xl font-black text-zinc-900 tracking-tight">
+						<h1 className="text-lg font-bold text-zinc-900">
 							{user.name || "User Profile"}
 						</h1>
-						<p className="text-zinc-500 font-bold text-xs">
+						<p className="text-sm text-zinc-500 mt-0.5">
 							Manage your account and preferences
 						</p>
 					</div>
@@ -134,257 +132,210 @@ const Profile = () => {
 				{!editing && (
 					<button
 						onClick={() => setEditing(true)}
-						className="px-5 py-2 bg-white border border-zinc-200 text-zinc-600 font-black rounded-xl hover:bg-zinc-50 transition-all flex items-center gap-2 shadow-sm text-xs active:scale-95">
+						className="px-4 py-2 bg-white border border-zinc-200 text-sm font-medium text-zinc-600 rounded-xl hover:bg-zinc-50 transition-all">
 						Edit Profile
 					</button>
 				)}
 			</div>
 
-			{/* Success/Error Alerts */}
+			{/* Alerts */}
 			{success && (
 				<motion.div
-					initial={{ opacity: 0, y: -10 }}
-					animate={{ opacity: 1, y: 0 }}
-					className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl flex items-center gap-3 font-medium">
-					<FiCheck className="text-emerald-500" />
-					Profile updated successfully!
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl flex items-center gap-2 text-sm">
+					<FiCheck size={15} /> Profile updated successfully
 				</motion.div>
 			)}
-
 			{error && (
 				<motion.div
-					initial={{ opacity: 0, y: -10 }}
-					animate={{ opacity: 1, y: 0 }}
-					className="p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl flex items-center gap-3 font-medium">
-					<FiAlertCircle className="text-rose-500" />
-					{error}
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					className="p-3 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl flex items-center gap-2 text-sm">
+					<FiAlertCircle size={15} /> {error}
 				</motion.div>
 			)}
 
-			{/* Form Section */}
-			<div className="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden">
-				<div className="px-6 py-4 border-b border-zinc-100 bg-zinc-50/50">
-					<h2 className="font-black text-zinc-900 flex items-center gap-2 text-sm">
-						<FiUser className="text-indigo-600" size={16} /> Personal Information
+			{/* Personal Info */}
+			<div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
+				<div className="px-5 py-3.5 border-b border-zinc-100 bg-zinc-50 flex items-center gap-2">
+					<FiUser className="text-indigo-500" size={15} />
+					<h2 className="text-sm font-semibold text-zinc-800">
+						Personal Information
 					</h2>
 				</div>
-
-				<form onSubmit={handleSubmit} className="p-6 space-y-4">
+				<form onSubmit={handleSubmit} className="p-5 space-y-4">
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						{/* Name */}
-						<div className="space-y-2">
-							<label className="text-xs font-bold text-zinc-500 uppercase tracking-widest px-1">
-								Full Name
-							</label>
+						{[
+							{
+								label: "Full Name",
+								name: "name",
+								type: "text",
+								icon: <FiUser size={15} />,
+							},
+							{
+								label: "Phone Number",
+								name: "phone",
+								type: "tel",
+								icon: <FiPhone size={15} />,
+							},
+							{
+								label: "Email Address",
+								name: "email",
+								type: "email",
+								icon: <FiMail size={15} />,
+							},
+						].map(({ label, name, type, icon }) => (
+							<div key={name}>
+								<label className={labelClass}>{label}</label>
+								<div className="relative">
+									<span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
+										{icon}
+									</span>
+									<input
+										type={type}
+										name={name}
+										value={formData[name]}
+										onChange={handleChange}
+										disabled={!editing}
+										className={`${inputBase} ${editing ? inputActive : inputDisabled}`}
+									/>
+								</div>
+							</div>
+						))}
+						<div>
+							<label className={labelClass}>Account Role</label>
 							<div className="relative">
-								<FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+								<span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
+									<FiShield size={15} />
+								</span>
 								<input
 									type="text"
-									name="name"
-									value={formData.name}
-									onChange={handleChange}
-									disabled={!editing}
-									className={`w-full pl-11 pr-4 py-3 rounded-2xl border transition-all outline-none font-medium ${
-										editing
-											? "border-indigo-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50"
-											: "border-zinc-100 bg-zinc-50/50 text-zinc-600 cursor-not-allowed"
-									}`}
-								/>
-							</div>
-						</div>
-
-						{/* Phone */}
-						<div className="space-y-2">
-							<label className="text-xs font-bold text-zinc-500 uppercase tracking-widest px-1">
-								Phone Number
-							</label>
-							<div className="relative">
-								<FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
-								<input
-									type="tel"
-									name="phone"
-									value={formData.phone}
-									onChange={handleChange}
-									disabled={!editing}
-									className={`w-full pl-11 pr-4 py-3 rounded-2xl border transition-all outline-none font-medium ${
-										editing
-											? "border-indigo-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50"
-											: "border-zinc-100 bg-zinc-50/50 text-zinc-600 cursor-not-allowed"
-									}`}
-								/>
-							</div>
-						</div>
-
-						{/* Email */}
-						<div className="space-y-2">
-							<label className="text-xs font-bold text-zinc-500 uppercase tracking-widest px-1">
-								Email Address
-							</label>
-							<div className="relative">
-								<FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
-								<input
-									type="email"
-									name="email"
-									value={formData.email}
-									onChange={handleChange}
-									disabled={!editing}
-									className={`w-full pl-11 pr-4 py-3 rounded-2xl border transition-all outline-none font-medium ${
-										editing
-											? "border-indigo-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50"
-											: "border-zinc-100 bg-zinc-50/50 text-zinc-600 cursor-not-allowed"
-									}`}
-								/>
-							</div>
-						</div>
-
-						{/* Role - Read Only */}
-						<div className="space-y-2">
-							<label className="text-xs font-bold text-zinc-500 uppercase tracking-widest px-1">
-								Account Role
-							</label>
-							<div className="relative">
-								<FiShield className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
-								<input
-									type="text"
-									value={user.role?.toUpperCase() || ""}
+									value={user.role || ""}
 									disabled
-									className="w-full pl-11 pr-4 py-3 rounded-2xl border border-zinc-100 bg-zinc-50/50 text-zinc-400 cursor-not-allowed font-bold"
+									className={`${inputBase} ${inputDisabled} capitalize`}
 								/>
 							</div>
 						</div>
 					</div>
 
-					{/* Action Buttons */}
 					{editing && (
-						<div className="flex items-center gap-2 pt-4 border-t border-zinc-100">
+						<div className="flex items-center gap-2 pt-3 border-t border-zinc-100">
 							<button
 								type="submit"
 								disabled={loading}
-								className="px-6 py-2.5 bg-indigo-600 text-white font-black rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all flex items-center gap-2 disabled:opacity-50 text-xs active:scale-95">
-								{loading ? (
-									"Saving..."
-								) : (
-									<>
-										<FiSave /> Save Changes
-									</>
-								)}
+								className="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50">
+								<FiSave size={14} /> {loading ? "Saving…" : "Save Changes"}
 							</button>
 							<button
 								type="button"
 								onClick={handleCancel}
 								disabled={loading}
-								className="px-6 py-2.5 bg-white border border-zinc-200 text-zinc-600 font-black rounded-xl hover:bg-zinc-50 transition-all flex items-center gap-2 text-xs active:scale-95">
-								<FiX /> Cancel
+								className="px-5 py-2 bg-white border border-zinc-200 text-sm font-medium text-zinc-600 rounded-xl hover:bg-zinc-50 transition-all flex items-center gap-2">
+								<FiX size={14} /> Cancel
 							</button>
 						</div>
 					)}
 				</form>
 			</div>
 
-			{/* Change Password Section */}
-			<div className="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden">
-				<div className="px-6 py-4 border-b border-zinc-100 bg-zinc-50/50">
-					<h2 className="font-black text-zinc-900 flex items-center gap-2 text-sm">
-						<FiLock className="text-rose-600" size={16} /> Change Password
+			{/* Change Password */}
+			<div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
+				<div className="px-5 py-3.5 border-b border-zinc-100 bg-zinc-50 flex items-center gap-2">
+					<FiLock className="text-rose-500" size={15} />
+					<h2 className="text-sm font-semibold text-zinc-800">
+						Change Password
 					</h2>
 				</div>
-
-				<form onSubmit={handlePasswordSubmit} className="p-6 space-y-4">
+				<form onSubmit={handlePasswordSubmit} className="p-5 space-y-4">
 					{passSuccess && (
 						<motion.div
-							initial={{ opacity: 0, y: -10 }}
-							animate={{ opacity: 1, y: 0 }}
-							className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl flex items-center gap-3 font-medium">
-							<FiCheck className="text-emerald-500" />
-							Password changed successfully!
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl flex items-center gap-2 text-sm">
+							<FiCheck size={15} /> Password changed successfully
 						</motion.div>
 					)}
-
 					{passError && (
 						<motion.div
-							initial={{ opacity: 0, y: -10 }}
-							animate={{ opacity: 1, y: 0 }}
-							className="p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl flex items-center gap-3 font-medium">
-							<FiAlertCircle className="text-rose-500" />
-							{passError}
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							className="p-3 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl flex items-center gap-2 text-sm">
+							<FiAlertCircle size={15} /> {passError}
 						</motion.div>
 					)}
-
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-						{/* New Password */}
-						<div className="space-y-2">
-							<label className="text-xs font-bold text-zinc-500 uppercase tracking-widest px-1">
-								New Password
-							</label>
-							<div className="relative">
-								<FiKey className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
-								<input
-									type="password"
-									name="newPassword"
-									value={passwordData.newPassword}
-									onChange={handlePasswordChange}
-									required
-									className="w-full pl-11 pr-4 py-3 rounded-2xl border border-zinc-100 focus:border-indigo-200 focus:ring-4 focus:ring-indigo-50 outline-none transition-all font-medium"
-								/>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						{[
+							{ label: "New Password", name: "newPassword" },
+							{ label: "Confirm Password", name: "confirmPassword" },
+						].map(({ label, name }) => (
+							<div key={name}>
+								<label className={labelClass}>{label}</label>
+								<div className="relative">
+									<span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
+										<FiKey size={15} />
+									</span>
+									<input
+										type="password"
+										name={name}
+										value={passwordData[name]}
+										onChange={handlePasswordChange}
+										required
+										className={`${inputBase} ${inputActive}`}
+										placeholder="••••••••"
+									/>
+								</div>
 							</div>
-						</div>
-
-						{/* Confirm Password */}
-						<div className="space-y-2">
-							<label className="text-xs font-bold text-zinc-500 uppercase tracking-widest px-1">
-								Confirm New Password
-							</label>
-							<div className="relative">
-								<FiKey className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
-								<input
-									type="password"
-									name="confirmPassword"
-									value={passwordData.confirmPassword}
-									onChange={handlePasswordChange}
-									required
-									className="w-full pl-11 pr-4 py-3 rounded-2xl border border-zinc-100 focus:border-indigo-200 focus:ring-4 focus:ring-indigo-50 outline-none transition-all font-medium"
-								/>
-							</div>
-						</div>
+						))}
 					</div>
-
-					<div className="flex pt-4">
+					<div className="pt-2">
 						<button
 							type="submit"
 							disabled={passLoading}
-							className="px-8 py-3 bg-zinc-900 text-white font-bold rounded-2xl hover:bg-zinc-800 shadow-lg shadow-zinc-100 transition-all flex items-center gap-2 disabled:opacity-50 active:scale-95">
-							{passLoading ? "Updating..." : "Update Password"}
+							className="px-5 py-2 bg-zinc-900 text-white text-sm font-medium rounded-xl hover:bg-zinc-800 transition-all flex items-center gap-2 disabled:opacity-50">
+							{passLoading ? "Updating…" : "Update Password"}
 						</button>
 					</div>
 				</form>
 			</div>
 
-			{/* Account Status Card */}
-			<div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 overflow-hidden relative group">
-				<div className="relative z-10">
-					<h3 className="text-sm font-black text-zinc-900 mb-4 tracking-tight uppercase">Subscription Details</h3>
-					<div className="flex flex-wrap gap-3">
-						<div className="bg-zinc-50 px-4 py-2 rounded-xl border border-zinc-100">
-							<p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest">
-								Status
-							</p>
-							<p className="font-black text-indigo-600 text-sm">
-								{user.isActive ? "ACTIVE" : "PENDING"}
-							</p>
-						</div>
-						<div className="bg-zinc-50 px-4 py-2 rounded-xl border border-zinc-100">
-							<p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest">
-								Valid Until
-							</p>
-							<p className="font-black text-zinc-900 text-sm">
-								{user.subsValid
-									? new Date(user.subsValid).toLocaleDateString()
-									: "N/A"}
-							</p>
-						</div>
+			{/* Subscription */}
+			<div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-5">
+				<h3 className="text-sm font-semibold text-zinc-800 mb-4">
+					Subscription Details
+				</h3>
+				<div className="flex flex-wrap gap-3">
+					<div className="bg-zinc-50 px-4 py-3 rounded-xl border border-zinc-100">
+						<p className="text-xs text-zinc-400 mb-1">Status</p>
+						<p
+							className={`text-sm font-semibold ${user.isActive ? "text-emerald-600" : "text-zinc-400"}`}>
+							{user.isActive ? "Active" : "Inactive"}
+						</p>
+					</div>
+					<div
+						className={`px-4 py-3 rounded-xl border ${subsExpired ? "bg-red-50 border-red-100" : "bg-zinc-50 border-zinc-100"}`}>
+						<p className="text-xs text-zinc-400 mb-1">Valid Until</p>
+						<p
+							className={`text-sm font-semibold ${subsExpired ? "text-red-600" : "text-zinc-800"}`}>
+							{user.subsValid
+								? new Date(user.subsValid).toLocaleDateString("en-IN", {
+										day: "numeric",
+										month: "short",
+										year: "numeric",
+									})
+								: "—"}
+							{subsExpired && (
+								<span className="ml-2 text-xs text-red-400">Expired</span>
+							)}
+						</p>
+					</div>
+					<div className="bg-zinc-50 px-4 py-3 rounded-xl border border-zinc-100">
+						<p className="text-xs text-zinc-400 mb-1">Role</p>
+						<p className="text-sm font-semibold text-zinc-800 capitalize">
+							{user.role || "—"}
+						</p>
 					</div>
 				</div>
-				<FiShield className="text-zinc-50 w-24 h-24 absolute -right-4 -bottom-4 transform rotate-12 group-hover:scale-110 transition-transform duration-500" />
 			</div>
 		</div>
 	);

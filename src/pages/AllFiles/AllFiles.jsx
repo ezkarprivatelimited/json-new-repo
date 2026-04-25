@@ -222,9 +222,7 @@ const FileList = () => {
 		return (
 			<div className="flex flex-col items-center justify-center py-32">
 				<div className="w-10 h-10 border-2 border-zinc-200 border-t-indigo-600 rounded-full animate-spin" />
-				<p className="mt-4 text-xs font-bold text-zinc-400 uppercase tracking-widest">
-					Loading files
-				</p>
+				<p className="mt-4 text-xs text-zinc-400">Loading files</p>
 			</div>
 		);
 
@@ -260,8 +258,8 @@ const FileList = () => {
 									className="hidden"
 								/>
 								<div
-									className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest text-white shadow-xl transition-all active:scale-95
-									${uploading ? "bg-zinc-300" : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200"}`}>
+									className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-all active:scale-95
+									${uploading ? "bg-zinc-300" : "bg-indigo-600 hover:bg-indigo-700"}`}>
 									<FiUploadCloud size={16} />
 									{uploading ? "Uploading..." : "Upload JSON"}
 								</div>
@@ -310,12 +308,12 @@ const FileList = () => {
 								<button
 									key={cat}
 									onClick={() => setSelectedCategory(cat)}
-									className={`px-6 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all ${
+									className={`px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap capitalize transition-all ${
 										selectedCategory === cat
-											? "bg-zinc-900 text-white shadow-xl shadow-zinc-200"
-											: "bg-zinc-50 text-zinc-400 border border-transparent hover:bg-zinc-100"
+											? "bg-zinc-900 text-white"
+											: "bg-zinc-50 text-zinc-500 border border-zinc-200 hover:bg-zinc-100"
 									}`}>
-									{cat}
+									{cat === "all" ? "All" : cat}
 								</button>
 							))}
 						</div>
@@ -346,13 +344,13 @@ const FileList = () => {
 						</div>
 					) : filteredFiles.length === 0 ? (
 						<div className="flex flex-col items-center justify-center py-32 text-center">
-							<div className="w-20 h-20 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-300 mb-6">
-								<FiFile size={32} />
+							<div className="w-16 h-16 bg-zinc-100 rounded-2xl flex items-center justify-center text-zinc-300 mb-4">
+								<FiFile size={28} />
 							</div>
-							<h3 className="text-lg font-bold text-zinc-900">
+							<h3 className="text-base font-semibold text-zinc-700">
 								No files found
 							</h3>
-							<p className="text-sm font-medium text-zinc-400 mt-1 uppercase tracking-wider">
+							<p className="text-sm text-zinc-400 mt-1">
 								Try a different search or upload a new JSON
 							</p>
 						</div>
@@ -375,24 +373,20 @@ const FileList = () => {
 									<div className="relative z-10 flex flex-col items-start h-full">
 										<FileIcon name={file.name} />
 
-										<h3 className="font-semibold text-zinc-900 mt-6 mb-2 truncate group-hover:text-indigo-600 transition-colors w-full">
+										<h3 className="font-medium text-zinc-800 mt-4 mb-2 truncate group-hover:text-indigo-600 transition-colors w-full text-sm">
 											{file.name}
 										</h3>
 
-										<div className="flex items-center justify-between mt-auto pt-6 w-full">
-											<div className="space-y-1">
-												<p className="text-[10px] font-semibold text-zinc-300 uppercase tracking-widest">
-													Size
-												</p>
-												<p className="text-[10px] font-medium text-zinc-500">
+										<div className="flex items-center justify-between mt-auto pt-4 w-full">
+											<div>
+												<p className="text-xs text-zinc-400">Size</p>
+												<p className="text-xs text-zinc-600 mt-0.5">
 													{formatSize(file.size)}
 												</p>
 											</div>
-											<div className="space-y-1 text-right">
-												<p className="text-[10px] font-semibold text-zinc-300 uppercase tracking-widest">
-													Modified
-												</p>
-												<p className="text-[10px] font-medium text-zinc-500">
+											<div className="text-right">
+												<p className="text-xs text-zinc-400">Modified</p>
+												<p className="text-xs text-zinc-600 mt-0.5">
 													{formatDate(file.modified)}
 												</p>
 											</div>
@@ -405,46 +399,46 @@ const FileList = () => {
 						<div className="bg-white rounded-[2rem] border border-zinc-100 overflow-hidden">
 							<div className="overflow-x-auto">
 								<table className="w-full text-left">
-									<thead className="bg-zinc-50/50 border-b border-zinc-100">
+									<thead className="bg-zinc-50 border-b border-zinc-100">
 										<tr>
-											<th className="px-8 py-5 text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.2em]">
+											<th className="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wide">
 												File Name
 											</th>
-											<th className="px-8 py-5 text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.2em]">
+											<th className="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wide">
 												Size
 											</th>
-											<th className="px-8 py-5 text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.2em]">
+											<th className="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wide">
 												Last Modified
 											</th>
-											<th className="px-8 py-5 text-center text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.2em]">
+											<th className="px-6 py-3 text-center text-xs font-semibold text-zinc-500 uppercase tracking-wide">
 												Action
 											</th>
 										</tr>
 									</thead>
-									<tbody className="divide-y divide-zinc-50">
+									<tbody className="divide-y divide-zinc-100">
 										{filteredFiles.map((file) => (
 											<tr
 												key={file.id}
 												onClick={() => navigate(`/file/${file.id}`)}
-												className="hover:bg-zinc-50/80 transition-colors cursor-pointer group">
-												<td className="px-8 py-4">
-													<div className="flex items-center gap-4">
-														<FileIcon name={file.name} size="text-lg" />
-														<span className="text-sm font-semibold text-zinc-700 group-hover:text-indigo-600 transition-colors">
+												className="hover:bg-zinc-50 transition-colors cursor-pointer group">
+												<td className="px-6 py-3.5">
+													<div className="flex items-center gap-3">
+														<FileIcon name={file.name} size="text-base" />
+														<span className="text-sm font-medium text-zinc-700 group-hover:text-indigo-600 transition-colors">
 															{file.name}
 														</span>
 													</div>
 												</td>
-												<td className="px-8 py-4 text-[10px] font-medium text-zinc-500 uppercase">
+												<td className="px-6 py-3.5 text-sm text-zinc-500">
 													{formatSize(file.size)}
 												</td>
-												<td className="px-8 py-4 text-[10px] font-medium text-zinc-500 uppercase">
+												<td className="px-6 py-3.5 text-sm text-zinc-500">
 													{formatDate(file.modified)}
 												</td>
-												<td className="px-8 py-4 text-center">
+												<td className="px-6 py-3.5 text-center">
 													<FiChevronRight
-														className="inline-block text-zinc-300 group-hover:text-indigo-500 transition-all group-hover:translate-x-0.5"
-														size={18}
+														className="inline-block text-zinc-300 group-hover:text-indigo-500 transition-all"
+														size={16}
 													/>
 												</td>
 											</tr>

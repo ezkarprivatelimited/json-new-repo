@@ -90,31 +90,30 @@ const CreateUser = () => {
 	};
 
 	const inputClasses =
-		"w-full pl-12 pr-4 py-4 rounded-2xl border border-zinc-200 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 outline-none transition-all font-bold text-sm bg-white shadow-sm hover:border-zinc-300";
-	const labelClasses =
-		"text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] px-1 mb-2 block";
+		"w-full pl-12 pr-4 py-3 rounded-xl border border-zinc-200 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 outline-none transition-all text-sm text-zinc-800 bg-white placeholder:text-zinc-400";
+	const labelClasses = "text-xs font-semibold text-zinc-500 mb-1.5 block";
 
 	return (
 		<div className="w-full py-4 px-4 sm:px-6">
 			{/* Clean Header */}
 			<div className=" flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-zinc-100 pb-4">
-				<div className="flex items-center gap-6">
-					<div className="w-14 h-14 rounded-3xl bg-indigo-600 flex items-center justify-center text-white text-3xl shadow-xl shadow-indigo-100">
-						<FiPlus />
+				<div className="flex items-center gap-4">
+					<div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+						<FiPlus size={20} />
 					</div>
 					<div>
-						<h1 className="text-xl font-black text-zinc-900 tracking-tight">
+						<h1 className="text-xl font-bold text-zinc-900 tracking-tight">
 							Onboard User
 						</h1>
-						<p className="text-zinc-500  text-sm mt-1">
+						<p className="text-sm text-zinc-500 mt-0.5">
 							Manual account creation & activation
 						</p>
 					</div>
 				</div>
 				<button
 					onClick={() => navigate(-1)}
-					className="px-6 py-3 bg-white border border-zinc-200 rounded-2xl text-zinc-600 font-black text-xs uppercase tracking-widest hover:bg-zinc-50 transition-all flex items-center gap-2 shadow-sm">
-					<FiChevronLeft /> Back to List
+					className="px-4 py-2 bg-white border border-zinc-200 rounded-xl text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-all flex items-center gap-2">
+					<FiChevronLeft size={14} /> Back
 				</button>
 			</div>
 
@@ -124,16 +123,16 @@ const CreateUser = () => {
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
-						className="bg-white rounded-3xl shadow-sm border border-zinc-200 p-6 space-y-6">
+						className="bg-white rounded-2xl shadow-sm border border-zinc-200 p-6 space-y-5">
 						<div className="flex items-center gap-3">
-							<div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-								<FiUser size={20} />
+							<div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+								<FiUser size={18} />
 							</div>
 							<div>
-								<h2 className="text-lg font-black text-zinc-900 tracking-tight">
+								<h2 className="text-base font-semibold text-zinc-900">
 									Account Identity
 								</h2>
-								<p className="text-zinc-400 text-[10px] font-bold">
+								<p className="text-xs text-zinc-400">
 									Personal and login credentials
 								</p>
 							</div>
@@ -143,8 +142,9 @@ const CreateUser = () => {
 							<motion.div
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
-								className="p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl flex items-center gap-3 text-sm font-bold">
-								<FiShield className="text-rose-500" /> {error}
+								className="p-3 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl flex items-center gap-2 text-sm">
+								<FiShield size={14} className="text-rose-400 shrink-0" />{" "}
+								{error}
 							</motion.div>
 						)}
 
@@ -152,7 +152,10 @@ const CreateUser = () => {
 							<div>
 								<label className={labelClasses}>Full Name</label>
 								<div className="relative group">
-									<FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-indigo-400 transition-colors" />
+									<FiUser
+										className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-indigo-500 transition-colors"
+										size={15}
+									/>
 									<input
 										type="text"
 										name="name"
@@ -164,11 +167,13 @@ const CreateUser = () => {
 									/>
 								</div>
 							</div>
-
 							<div>
 								<label className={labelClasses}>Email Address</label>
 								<div className="relative group">
-									<FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-indigo-400 transition-colors" />
+									<FiMail
+										className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-indigo-500 transition-colors"
+										size={15}
+									/>
 									<input
 										type="email"
 										name="email"
@@ -180,11 +185,13 @@ const CreateUser = () => {
 									/>
 								</div>
 							</div>
-
 							<div>
 								<label className={labelClasses}>Mobile Number</label>
 								<div className="relative group">
-									<FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-indigo-400 transition-colors" />
+									<FiPhone
+										className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-indigo-500 transition-colors"
+										size={15}
+									/>
 									<input
 										type="tel"
 										name="phone"
@@ -196,11 +203,13 @@ const CreateUser = () => {
 									/>
 								</div>
 							</div>
-
 							<div>
 								<label className={labelClasses}>Initial Password</label>
 								<div className="relative group">
-									<FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-indigo-400 transition-colors" />
+									<FiLock
+										className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-indigo-500 transition-colors"
+										size={15}
+									/>
 									<input
 										type="password"
 										name="password"
@@ -221,16 +230,16 @@ const CreateUser = () => {
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.1 }}
 						className="space-y-4">
-						<div className="bg-white rounded-3xl shadow-sm border border-zinc-200 p-6 space-y-6">
+						<div className="bg-white rounded-2xl shadow-sm border border-zinc-200 p-6 space-y-5">
 							<div className="flex items-center gap-3">
-								<div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
-									<FiShield size={20} />
+								<div className="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center text-rose-500">
+									<FiShield size={18} />
 								</div>
 								<div>
-									<h2 className="text-lg font-black text-zinc-900 tracking-tight">
+									<h2 className="text-base font-semibold text-zinc-900">
 										Access Control
 									</h2>
-									<p className="text-zinc-400 text-[10px] font-bold">
+									<p className="text-xs text-zinc-400">
 										Business role and validation
 									</p>
 								</div>
@@ -245,10 +254,10 @@ const CreateUser = () => {
 												key={role}
 												type="button"
 												onClick={() => setForm((p) => ({ ...p, role }))}
-												className={`py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+												className={`py-2 rounded-xl text-xs font-semibold capitalize transition-all border ${
 													form.role === role
-														? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100"
-														: "bg-white text-zinc-400 border-zinc-100 hover:border-zinc-300"
+														? "bg-indigo-600 text-white border-indigo-600"
+														: "bg-white text-zinc-500 border-zinc-200 hover:border-zinc-300"
 												}`}>
 												{role}
 											</button>
@@ -259,7 +268,10 @@ const CreateUser = () => {
 								<div>
 									<label className={labelClasses}>GSTIN Number</label>
 									<div className="relative group">
-										<FiBriefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-indigo-400 transition-colors" />
+										<FiBriefcase
+											className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-indigo-500 transition-colors"
+											size={15}
+										/>
 										<input
 											type="text"
 											name="gstin"
@@ -267,72 +279,64 @@ const CreateUser = () => {
 											value={form.gstin}
 											onChange={handleChange}
 											className={`${inputClasses} uppercase tracking-wider`}
-											placeholder="GSTIN"
+											placeholder="22AAAAA0000A1Z5"
 										/>
 									</div>
 								</div>
 							</div>
 						</div>
 
-						{/* Subscription Summary Card */}
-						<div className="bg-white rounded-3xl p-6 border border-zinc-200 shadow-sm relative overflow-hidden group">
-							<div className="relative z-10">
-								<h3 className="text-xs font-black text-indigo-600 uppercase tracking-[0.2em] mb-4">
-									Subscription Plan
-								</h3>
+						{/* Subscription Card */}
+						<div className="bg-white rounded-2xl p-6 border border-zinc-200 shadow-sm">
+							<h3 className="text-sm font-semibold text-zinc-700 mb-4">
+								Subscription Plan
+							</h3>
 
-								<div className="space-y-4">
-									<div>
-										<label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 block">
-											Duration Select
-										</label>
-										<div className="flex flex-wrap gap-2">
-											{[7, 30, 90, 180, 365].map((d) => (
-												<button
-													key={d}
-													type="button"
-													onClick={() =>
-														setForm((p) => ({ ...p, subsDays: d.toString() }))
-													}
-													className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all ${
-														form.subsDays === d.toString()
-															? "bg-indigo-600 text-white shadow-lg shadow-indigo-100"
-															: "bg-zinc-50 text-zinc-500 hover:bg-zinc-100"
-													}`}>
-													{d}D
-												</button>
-											))}
-										</div>
+							<div className="space-y-4">
+								<div>
+									<label className={labelClasses}>Duration</label>
+									<div className="flex flex-wrap gap-2">
+										{[7, 30, 90, 180, 365].map((d) => (
+											<button
+												key={d}
+												type="button"
+												onClick={() =>
+													setForm((p) => ({ ...p, subsDays: d.toString() }))
+												}
+												className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+													form.subsDays === d.toString()
+														? "bg-indigo-600 text-white"
+														: "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"
+												}`}>
+												{d} days
+											</button>
+										))}
 									</div>
+								</div>
 
-									<div className="grid grid-cols-2 gap-4 items-end">
-										<div>
-											<label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1 block">
-												Custom Days
-											</label>
-											<input
-												type="number"
-												name="subsDays"
-												value={form.subsDays}
-												onChange={handleChange}
-												className="bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2 text-sm font-bold w-full focus:outline-none focus:border-indigo-400"
-											/>
-										</div>
-										<div className="text-right">
-											<p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-0.5">
-												Valid Until
-											</p>
-											<p className="text-lg font-black tracking-tighter text-zinc-900">
-												{new Date(
-													new Date(form.subsStart).getTime() +
-														Number(form.subsDays) * 86400000,
-												).toLocaleDateString("en-US", {
-													day: "numeric",
-													month: "short",
-													year: "numeric",
-												})}
-											</p>
-										</div>
+								<div className="grid grid-cols-2 gap-4 items-end">
+									<div>
+										<label className={labelClasses}>Custom Days</label>
+										<input
+											type="number"
+											name="subsDays"
+											value={form.subsDays}
+											onChange={handleChange}
+											className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2.5 text-sm text-zinc-800 focus:outline-none focus:border-indigo-400"
+										/>
+									</div>
+									<div className="text-right">
+										<p className="text-xs text-zinc-400 mb-0.5">Valid until</p>
+										<p className="text-base font-semibold text-zinc-900">
+											{new Date(
+												new Date(form.subsStart).getTime() +
+													Number(form.subsDays) * 86400000,
+											).toLocaleDateString("en-IN", {
+												day: "numeric",
+												month: "short",
+												year: "numeric",
+											})}
+										</p>
 									</div>
 								</div>
 							</div>
@@ -347,19 +351,19 @@ const CreateUser = () => {
 					className="sticky bottom-4 left-0 right-0 flex items-end justify-end">
 					<div className="flex items-center gap-3 w-full sm:w-auto">
 						{success && (
-							<span className="text-emerald-600 text-xs font-black mr-3 hidden md:block">
-								User Created Successfully!
+							<span className="text-emerald-600 text-sm font-medium mr-3 hidden md:block">
+								✓ User created successfully
 							</span>
 						)}
 						<button
 							type="submit"
 							disabled={loading}
-							className="flex-1 sm:flex-none px-10 py-3 bg-indigo-600 text-white font-black rounded-xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 text-sm">
+							className="flex-1 sm:flex-none px-8 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 text-sm">
 							{loading ? (
-								"PROCESSING..."
+								"Creating..."
 							) : (
 								<>
-									<FiPlus /> CREATE USER
+									<FiPlus size={14} /> Create User
 								</>
 							)}
 						</button>
