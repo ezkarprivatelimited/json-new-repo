@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 import { BiLoader } from "react-icons/bi";
 import {
 	FaArrowLeft,
@@ -31,6 +32,8 @@ const FileDetails = () => {
 	const [editing, setEditing] = useState(false);
 	const [saveStatus, setSaveStatus] = useState("");
 	const [othChrgManual, setOthChrgManual] = useState(false);
+	const [discountManual, setDiscountManual] = useState(false);
+	const [userDiscountInput, setUserDiscountInput] = useState("");
 	const [isIntraState, setIsIntraState] = useState(false);
 	const [originalTotItemVal, setOriginalTotItemVal] = useState(0);
 	const [originalOthChrg, setOriginalOthChrg] = useState(0);
@@ -39,6 +42,7 @@ const FileDetails = () => {
 	// Refs so updateTotals always reads current values synchronously
 	const origAssValRef = useRef(0);
 	const origOthChrgRef = useRef(0);
+	const origDiscountRef = useRef(0);
 	const origTotInvValRef = useRef(0);
 	const isTraderRef = useRef(isTrader);
 
@@ -71,6 +75,7 @@ const FileDetails = () => {
 				setIsIntraState(intraState);
 
 				setOthChrgManual(false);
+				setDiscountManual(false);
 				setLoading(false);
 			} catch (err) {
 				console.error("Fetch error:", err);
@@ -117,14 +122,16 @@ const FileDetails = () => {
 			try {
 				await refreshUser(true);
 			} catch {
-				console.warn("Profile refresh failed after download — navigating anyway");
+				console.warn(
+					"Profile refresh failed after download — navigating anyway",
+				);
 			}
 
 			// Always navigate to dashboard after a successful download
 			navigate("/");
 		} catch (err) {
 			console.error("Download failed:", err);
-			alert("Could not download original file");
+			toast.error("Could not download original file");
 		}
 	};
 
@@ -174,9 +181,12 @@ const FileDetails = () => {
 		// Set refs for synchronous access inside updateTotals
 		origAssValRef.current = origAssVal;
 		origOthChrgRef.current = Number(copy.data[0].ValDtls?.OthChrg || 0);
+		origDiscountRef.current = Number(copy.data[0].ValDtls?.Discount || 0);
 		origTotInvValRef.current = Number(copy.data[0].ValDtls?.TotInvVal || 0);
 
 		setOthChrgManual(false);
+		setDiscountManual(false);
+		setUserDiscountInput(""); // Start with empty field — user must type to override
 		setEditing(true);
 		setSaveStatus("");
 	};
@@ -189,8 +199,11 @@ const FileDetails = () => {
 		setOriginalOthChrg(0);
 		origAssValRef.current = 0;
 		origOthChrgRef.current = 0;
+		origDiscountRef.current = 0;
 		origTotInvValRef.current = 0;
 		setOthChrgManual(false);
+		setDiscountManual(false);
+		setUserDiscountInput("");
 		setEditing(false);
 		setSaveStatus("");
 	};
@@ -254,14 +267,14 @@ const FileDetails = () => {
 		let cgstVal = 0;
 		let sgstVal = 0;
 		let igstVal = 0;
-		let totItemValBase = 0;
+		let cesVal = 0;
 
 		items.forEach((item) => {
 			assVal += Number(item.AssAmt || 0);
 			cgstVal += Number(item.CgstAmt || 0);
 			sgstVal += Number(item.SgstAmt || 0);
 			igstVal += Number(item.IgstAmt || 0);
-			totItemValBase += Number(item.TotItemVal || 0);
+			cesVal += Number(item.CesAmt || 0);
 		});
 
 		const valDtls = data.data[0].ValDtls || {};
@@ -269,27 +282,117 @@ const FileDetails = () => {
 		valDtls.CgstVal = Number(cgstVal.toFixed(2));
 		valDtls.SgstVal = Number(sgstVal.toFixed(2));
 		valDtls.IgstVal = Number(igstVal.toFixed(2));
-		valDtls.CesVal = 0;
-		// Preserve Discount — do NOT reset to 0
+		valDtls.CesVal = Number(cesVal.toFixed(2));
 
-		if (isTraderRef.current) {
-			// For traders: OthChrg & Discount stay untouched, TotInvVal recalculates naturally
-			const othChrg = Number(valDtls.OthChrg || 0);
-			const discount = Number(valDtls.Discount || 0);
+		// Apply User's request: Discount is 0 during editing unless manually entered.
+		// This causes the original DB discount to be removed from the calc.
+		if (!discountManual) {
+			valDtls.Discount = 0;
+		}
+
+		const currentDiscount = Number(valDtls.Discount || 0);
+		const currentOthChrg = Number(valDtls.OthChrg || 0);
+
+		// 1. Calculate the "Target Total"
+		// Default is the original net total from the file.
+		// If the user manually edits the Grand Total Discount, the total becomes:
+		// Total = Original Net Total - Manual Discount
+		let targetTotal = origTotInvValRef.current;
+
+		if (discountManual) {
+			targetTotal = origTotInvValRef.current - currentDiscount;
+		}
+
+		// 2. Decide if the Total should be Sticky or Dynamic
+		// Total is Dynamic ONLY if:
+		// - User manually edited "Other Charges" (othChrgManual)
+		// - OR the user is a Trader AND hasn't manually edited Discount (Traders usually want dynamic, but user request says "Sticky" is priority)
+		// For the current request, let's make it STICKY for everyone unless OthChrg is manual.
+
+		if (othChrgManual) {
+			// User manually set Other Charges -> Total must be dynamic to honor that entry
 			valDtls.TotInvVal = Number(
-				(assVal + cgstVal + sgstVal + igstVal + othChrg - discount).toFixed(2),
+				(
+					assVal +
+					cgstVal +
+					sgstVal +
+					igstVal +
+					cesVal +
+					currentOthChrg -
+					currentDiscount
+				).toFixed(2),
+			);
+		} else if (isTraderRef.current) {
+			// Traders: No other charges by default, total is fully dynamic
+			valDtls.OthChrg = 0;
+			valDtls.TotInvVal = Number(
+				(
+					assVal +
+					cgstVal +
+					sgstVal +
+					igstVal +
+					cesVal -
+					currentDiscount
+				).toFixed(2),
 			);
 		} else {
-			// For manufacturers/admin: absorb AssAmt delta into OthChrg,
-			// keeping TotInvVal locked to the original backend value
-			if (!othChrgManual) {
-				const assValDelta = assVal - origAssValRef.current;
-				valDtls.OthChrg = Number(
-					(origOthChrgRef.current - assValDelta).toFixed(2),
+			// Manufacturer/Admin default: Target Total is sticky (adjusted only by discount)
+			// Other Charges absorbs item/tax changes to hit that target
+			const calculatedOthChrg = Number(
+				(
+					targetTotal -
+					(assVal + cgstVal + sgstVal + igstVal + cesVal) +
+					currentDiscount
+				).toFixed(2),
+			);
+
+			if (calculatedOthChrg < 0) {
+				// If other charges would go negative, set it to 0 and let the total increase
+				valDtls.OthChrg = 0;
+				valDtls.TotInvVal = Number(
+					(
+						assVal +
+						cgstVal +
+						sgstVal +
+						igstVal +
+						cesVal -
+						currentDiscount
+					).toFixed(2),
 				);
+			} else {
+				// Normal sticky behavior
+				valDtls.OthChrg = calculatedOthChrg;
+				valDtls.TotInvVal = Number(targetTotal.toFixed(2));
 			}
-			// TotInvVal always locked to original backend value
-			valDtls.TotInvVal = origTotInvValRef.current;
+		}
+	};
+
+	const handleDiscountChange = (e) => {
+		const raw = e.target.value;
+		setUserDiscountInput(raw);
+
+		const value = parseFloat(raw);
+		if (!isNaN(value) && raw !== "") {
+			setEditableData((prev) => {
+				if (!prev) return prev;
+				const newData = structuredClone(prev);
+				const valDtls = newData.data[0].ValDtls || {};
+				valDtls.Discount = Number(value.toFixed(2));
+				setDiscountManual(true);
+				updateTotals(newData);
+				return newData;
+			});
+		} else {
+			// Field cleared — set discount to 0 and turn off manual mode
+			setEditableData((prev) => {
+				if (!prev) return prev;
+				const newData = structuredClone(prev);
+				const valDtls = newData.data[0].ValDtls || {};
+				valDtls.Discount = 0;
+				setDiscountManual(false);
+				updateTotals(newData);
+				return newData;
+			});
 		}
 	};
 
@@ -302,23 +405,6 @@ const FileDetails = () => {
 			valDtls.OthChrg = Number(value.toFixed(2));
 			setOthChrgManual(true);
 			updateTotals(newData);
-			return newData;
-		});
-	};
-
-	const handleDiscountChange = (e) => {
-		const value = parseFloat(e.target.value) || 0;
-		setEditableData((prev) => {
-			if (!prev) return prev;
-			const newData = structuredClone(prev);
-			const vd = newData.data[0].ValDtls || {};
-			// Only update Discount and adjust TotInvVal by the delta.
-			// Do NOT call updateTotals — that would incorrectly recalculate OthChrg.
-			const oldDiscount = Number(vd.Discount || 0);
-			const newDiscount = Number(value.toFixed(2));
-			const discountDelta = newDiscount - oldDiscount;
-			vd.Discount = newDiscount;
-			vd.TotInvVal = Number((Number(vd.TotInvVal || 0) - discountDelta).toFixed(2));
 			return newData;
 		});
 	};
@@ -405,10 +491,24 @@ const FileDetails = () => {
 		setSaveStatus("saving");
 
 		try {
+			const valDtls = structuredClone(editableData.data[0].ValDtls);
+
+			// If user didn't manually enter a discount, remove it from ValDtls
+			// to avoid sending the old/stale value to the backend.
+			if (!discountManual) {
+				delete valDtls.Discount;
+			}
+
 			const payload = {
 				ItemList: editableData.data[0].ItemList,
-				ValDtls: editableData.data[0].ValDtls,
+				ValDtls: valDtls,
 			};
+
+			// Only include the Discount field explicitly if user changed it
+			if (discountManual) {
+				payload.Discount = editableData.data[0].ValDtls.Discount;
+			}
+
 			await api.post(
 				`${API_ENDPOINTS.FILE_PATH}/${fileId}/update-items`,
 				payload,
@@ -479,7 +579,7 @@ const FileDetails = () => {
 	return (
 		<div className="min-h-screen bg-gray-50 pb-12">
 			{/* Sticky Header */}
-			<div className="bg-white shadow-sm sticky -top-2 z-50">
+			<div className="bg-white shadow-sm sticky -top-2 z-20">
 				<div className="w-full mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 					<button
 						onClick={() => navigate(-1)}
@@ -877,9 +977,10 @@ const FileDetails = () => {
 										type="number"
 										step="0.01"
 										min="0"
-										className="w-full text-center text-xl font-bold border border-gray-300 rounded py-2 focus:outline-none focus:ring-2 focus:ring-rose-500 mt-1"
-										value={valDtls.Discount ?? ""}
+										className="w-full text-center text-xl font-bold border border-gray-300 rounded py-2 focus:outline-none focus:ring-2 focus:ring-rose-400 mt-1"
+										value={userDiscountInput}
 										onChange={handleDiscountChange}
+										placeholder={Number(valDtls.Discount).toFixed(2)}
 									/>
 								) : (
 									<p className="text-xl font-bold text-rose-600 mt-1">

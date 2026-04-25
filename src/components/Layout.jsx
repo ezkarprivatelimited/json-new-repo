@@ -35,6 +35,7 @@ const Layout = ({ children }) => {
 		// { name: "", path: "/files", icon: <FiFolder size={20} /> },
 		// { name: "Activity", path: "/activity", icon: <FiActivity size={20} /> },
 		// { name: "Settings", path: "/settings", icon: <FiSettings size={20} /> },
+		// { name: "User Profile", path: "/profile", icon: <FiUser size={20} /> },
 		...(isAdmin
 			? [
 					{
@@ -207,7 +208,7 @@ const Layout = ({ children }) => {
 			{/* --- MAIN WRAPPER --- */}
 			<div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 				{/* --- NAVBAR --- */}
-				<header className="h-16 bg-white border-b border-zinc-200 flex items-center justify-between px-4 md:px-8 shrink-0 z-20">
+				<header className="h-16 bg-white border-b border-zinc-200 flex items-center justify-between px-4 md:px-8 shrink-0 z-[100]">
 					<div className="flex items-center gap-4">
 						<button
 							onClick={() => setIsMobileMenuOpen(true)}
@@ -231,7 +232,13 @@ const Layout = ({ children }) => {
 								<FiUser className="text-zinc-600 group-hover:text-indigo-600 transition-colors" />
 							</button>
 
-							<div className="absolute right-0 mt-2 w-48 bg-white border border-zinc-200 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-2 z-50">
+							<div className="absolute right-0 mt-2 w-48 bg-white border border-zinc-200 rounded-xl shadow-xl invisible group-hover:opacity-100 group-hover:visible transition-all py-2 z-[9999]">
+								<Link
+									to="/profile"
+									className="flex items-center px-4 py-2 text-xs font-bold text-zinc-700 hover:bg-zinc-50 transition-colors">
+									<FiUser className="mr-2" /> My Profile
+								</Link>
+								<div className="h-[1px] bg-zinc-100 my-1 mx-2" />
 								<button
 									onClick={handleLogout}
 									className="w-full flex items-center px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors">

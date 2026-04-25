@@ -3,16 +3,20 @@ import { useEffect, useRef, useState } from "react";
 import {
 	FiCheck,
 	FiLoader,
+	FiLock,
 	FiMail,
 	FiPhone,
+	FiPlusCircle,
 	FiRefreshCw,
 	FiSearch,
 	FiShield,
 	FiUser,
 	FiX,
 } from "react-icons/fi";
+import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import { API_ENDPOINTS } from "../../api/endpoints";
+import toast from "react-hot-toast";
 
 const ROLE_COLORS = {
 	admin: "bg-purple-100 text-purple-700",
@@ -71,12 +75,10 @@ const ManageUsers = () => {
 
 			const updatedUser = response.data.user;
 
-			setUsers((prev) =>
-				prev.map((u) => (u._id === userId ? updatedUser : u)),
-			);
+			setUsers((prev) => prev.map((u) => (u._id === userId ? updatedUser : u)));
 			if (selectedUser?._id === userId) setSelectedUser(updatedUser);
 		} catch {
-			alert("Failed to activate user");
+			toast.error("Failed to activate user");
 		} finally {
 			setActionLoading((prev) => ({ ...prev, [userId]: null }));
 			setSubModal(null);
@@ -92,12 +94,28 @@ const ManageUsers = () => {
 
 			const updatedUser = response.data.user;
 
-			setUsers((prev) =>
-				prev.map((u) => (u._id === userId ? updatedUser : u)),
-			);
+			setUsers((prev) => prev.map((u) => (u._id === userId ? updatedUser : u)));
 			if (selectedUser?._id === userId) setSelectedUser(updatedUser);
 		} catch {
-			alert("Failed to deactivate user");
+			toast.error("Failed to deactivate user");
+		} finally {
+			setActionLoading((prev) => ({ ...prev, [userId]: null }));
+		}
+	};
+
+	const handleResetPassword = async (userId, newPassword) => {
+		setActionLoading((prev) => ({ ...prev, [userId]: "resetting" }));
+		try {
+			const response = await api.put(API_ENDPOINTS.USER_STATUS(userId), {
+				password: newPassword,
+			});
+			const updatedUser = response.data.user;
+			setUsers((prev) => prev.map((u) => (u._id === userId ? updatedUser : u)));
+			if (selectedUser?._id === userId) setSelectedUser(updatedUser);
+			return true;
+		} catch (err) {
+			toast.error(err.response?.data?.message || "Failed to reset password");
+			return false;
 		} finally {
 			setActionLoading((prev) => ({ ...prev, [userId]: null }));
 		}
@@ -118,53 +136,61 @@ const ManageUsers = () => {
 
 	return (
 		<>
-			<div className="space-y-6">
+			<div className="w-full space-y-4 py-2 px-2 sm:px-4">
 				{/* Header */}
-				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 pb-4">
 					<div>
-						<h1 className="text-2xl font-bold text-zinc-900 tracking-tight flex items-center gap-2">
-							<FiShield className="text-indigo-600" /> Manage Users
+						<h1 className="text-xl font-black text-zinc-900 tracking-tight flex items-center gap-2">
+							<FiShield className="text-indigo-600" size={18} /> Manage Users
 						</h1>
-						<p className="text-sm text-zinc-500 mt-0.5">
+						<p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
 							{users.length} total users
 							{inactiveCount > 0 && (
-								<span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-bold">
+								<span className="ml-2 px-2 py-0.5 bg-rose-50 text-rose-600 rounded-full">
 									{inactiveCount} inactive
 								</span>
 							)}
 						</p>
 					</div>
-					<button
-						onClick={fetchUsers}
-						className="flex items-center gap-2 px-4 py-2 bg-white border border-zinc-200 rounded-lg text-sm font-bold text-zinc-600 hover:bg-zinc-50 transition-colors">
-						<FiRefreshCw size={14} /> Refresh
-					</button>
+
+					<div className="flex gap-2">
+						<Link
+							to="/create-user"
+							className="flex items-center gap-2 px-4 py-2 bg-white border border-zinc-200 rounded-xl text-xs font-black text-indigo-600 hover:bg-zinc-50 transition-all shadow-sm">
+							<FiPlusCircle size={14} /> Create User
+						</Link>
+						<button
+							onClick={fetchUsers}
+							className="flex items-center gap-2 px-4 py-2 bg-white border border-zinc-200 rounded-xl text-xs font-black text-zinc-500 hover:bg-zinc-50 transition-all shadow-sm">
+							<FiRefreshCw size={14} /> Refresh
+						</button>
+					</div>
 				</div>
 
 				{/* Filters */}
-				<div className="bg-white p-3 rounded-xl border border-zinc-200 shadow-sm flex flex-col sm:flex-row gap-3">
+				<div className="bg-white p-2 rounded-xl border border-zinc-200 shadow-sm flex flex-col sm:flex-row gap-2">
 					<div className="relative flex-1">
 						<FiSearch
 							className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
-							size={14}
+							size={12}
 						/>
 						<input
 							type="text"
 							placeholder="Search by name or email..."
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
-							className="w-full pl-9 pr-4 py-2 bg-zinc-50 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white"
+							className="w-full pl-9 pr-4 py-1.5 bg-zinc-50 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white"
 						/>
 					</div>
-					<div className="flex gap-2">
+					<div className="flex gap-1.5">
 						{["all", "active", "inactive"].map((s) => (
 							<button
 								key={s}
 								onClick={() => setFilterStatus(s)}
-								className={`px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
+								className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
 									filterStatus === s
-										? "bg-indigo-600 text-white"
-										: "bg-zinc-50 text-zinc-500 hover:bg-zinc-100"
+										? "bg-indigo-600 text-white shadow-lg shadow-indigo-100"
+										: "bg-zinc-50 text-zinc-400 hover:bg-zinc-100"
 								}`}>
 								{s}
 							</button>
@@ -193,28 +219,28 @@ const ManageUsers = () => {
 					<div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
 						{/* Desktop table */}
 						<div className="hidden md:block overflow-x-auto">
-							<table className="w-full text-sm">
+							<table className="w-full text-xs">
 								<thead className="bg-zinc-50 border-b border-zinc-200">
 									<tr>
-										<th className="px-6 py-3 text-left text-xs font-bold text-zinc-500 uppercase tracking-wide">
+										<th className="px-4 py-2 text-left font-black text-zinc-400 uppercase tracking-widest">
 											User
 										</th>
-										<th className="px-6 py-3 text-left text-xs font-bold text-zinc-500 uppercase tracking-wide">
+										<th className="px-4 py-2 text-left font-black text-zinc-400 uppercase tracking-widest">
 											Phone No.
 										</th>
-										<th className="px-6 py-3 text-left text-xs font-bold text-zinc-500 uppercase tracking-wide">
+										<th className="px-4 py-2 text-left font-black text-zinc-400 uppercase tracking-widest">
 											Role
 										</th>
-										<th className="px-6 py-3 text-left text-xs font-bold text-zinc-500 uppercase tracking-wide">
+										<th className="px-4 py-2 text-left font-black text-zinc-400 uppercase tracking-widest">
 											Status
 										</th>
-										<th className="px-6 py-3 text-left text-xs font-bold text-zinc-500 uppercase tracking-wide">
+										<th className="px-4 py-2 text-left font-black text-zinc-400 uppercase tracking-widest">
 											Joined
 										</th>
-										<th className="px-6 py-3 text-left text-xs font-bold text-zinc-500 uppercase tracking-wide">
+										<th className="px-4 py-2 text-left font-black text-zinc-400 uppercase tracking-widest">
 											Sub. Valid
 										</th>
-										<th className="px-6 py-3 text-center text-xs font-bold text-zinc-500 uppercase tracking-wide">
+										<th className="px-4 py-2 text-center font-black text-zinc-400 uppercase tracking-widest">
 											Actions
 										</th>
 									</tr>
@@ -225,61 +251,53 @@ const ManageUsers = () => {
 											key={u._id}
 											onClick={() => setSelectedUser(u)}
 											className="hover:bg-zinc-50 transition-colors cursor-pointer">
-											<td className="px-6 py-4">
+											<td className="px-4 py-2">
 												<div className="flex items-center gap-3">
-													<div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm shrink-0">
+													<div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 font-black text-xs shrink-0">
 														{(u.name || u.email || "?")[0].toUpperCase()}
 													</div>
 													<div>
-														<p className="font-semibold text-sm text-zinc-900">
+														<p className="font-bold text-xs text-zinc-900">
 															{u.name || "—"}
 														</p>
-														<p className="text-xs text-zinc-500 mt-0.5">
+														<p className="text-[10px] text-zinc-400 font-bold">
 															{u.email}
 														</p>
 													</div>
 												</div>
 											</td>
-											<td className="px-6 py-4 text-sm text-zinc-700 font-medium">
-												{u.phone || "—"}
+											<td className="px-4 py-2">
+												<span className="font-bold text-zinc-600">
+													{u.phone || "—"}
+												</span>
 											</td>
-											<td className="px-6 py-4">
+											<td className="px-4 py-2">
 												<span
-													className={`px-2.5 py-1 rounded-full text-xs font-semibold ${ROLE_COLORS[u.role] || "bg-zinc-100 text-zinc-600"}`}>
+													className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest ${ROLE_COLORS[u.role] || "bg-zinc-100 text-zinc-600"}`}>
 													{u.role || "—"}
 												</span>
 											</td>
-											<td className="px-6 py-4">
+											<td className="px-4 py-2">
 												<span
-													className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusStyle(u.isActive)}`}>
+													className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest ${getStatusStyle(u.isActive)}`}>
 													{getStatusLabel(u.isActive)}
 												</span>
 											</td>
-											<td className="px-6 py-4 text-sm text-zinc-500">
-												{u.createdAt
-													? new Date(u.createdAt).toLocaleDateString("en-IN", {
-															day: "numeric",
-															month: "short",
-															year: "numeric",
-														})
-													: "—"}
+											<td className="px-4 py-2 text-zinc-500 font-bold text-[11px]">
+												{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}
 											</td>
-											<td className="px-6 py-4">
+											<td className="px-4 py-2">
 												{u.subsValid ? (
 													<span
-														className={`text-xs font-semibold ${new Date(u.subsValid) < new Date() ? "text-red-500" : "text-emerald-600"}`}>
-														{new Date(u.subsValid).toLocaleDateString("en-IN", {
-															day: "numeric",
-															month: "short",
-															year: "numeric",
-														})}
+														className={`text-[11px] font-black ${new Date(u.subsValid) < new Date() ? "text-rose-500" : "text-emerald-600"}`}>
+														{new Date(u.subsValid).toLocaleDateString()}
 													</span>
 												) : (
-													<span className="text-xs text-zinc-400">—</span>
+													<span className="text-[11px] text-zinc-400 font-bold">—</span>
 												)}
 											</td>
 											<td
-												className="px-6 py-4"
+												className="px-4 py-2"
 												onClick={(e) => e.stopPropagation()}>
 												{u.role !== "admin" && (
 													<ActionButtons
@@ -350,6 +368,7 @@ const ManageUsers = () => {
 							handleReject(id);
 							setSelectedUser((u) => ({ ...u, isActive: false }));
 						}}
+						onResetPassword={handleResetPassword}
 						actionLoading={actionLoading[selectedUser._id]}
 					/>
 				)}
@@ -516,7 +535,30 @@ const SubscriptionModal = ({ onConfirm, onCancel, loading }) => {
 
 export default ManageUsers;
 
-const UserModal = ({ user, onClose, onApprove, onReject, actionLoading }) => {
+const UserModal = ({
+	user,
+	onClose,
+	onApprove,
+	onReject,
+	onResetPassword,
+	actionLoading,
+}) => {
+	const [showReset, setShowReset] = useState(false);
+	const [newPassword, setNewPassword] = useState("");
+	const [resetLoading, setResetLoading] = useState(false);
+
+	const handleReset = async () => {
+		if (!newPassword) return;
+		setResetLoading(true);
+		const success = await onResetPassword(user._id, newPassword);
+		if (success) {
+			setNewPassword("");
+			setShowReset(false);
+			toast.success("Password reset successfully!");
+		}
+		setResetLoading(false);
+	};
+
 	const info = [
 		{ label: "Email", icon: <FiMail size={14} />, value: user.email },
 		{ label: "Phone", icon: <FiPhone size={14} />, value: user.phone || "—" },
@@ -644,7 +686,46 @@ const UserModal = ({ user, onClose, onApprove, onReject, actionLoading }) => {
 					</div>
 				)}
 
-				{/* Actions */}
+				{/* Administrative Actions */}
+				{user.role !== "admin" && (
+					<div className="px-6 pb-4 border-t border-zinc-100 pt-4 space-y-4">
+						{!showReset ? (
+							<button
+								onClick={() => setShowReset(true)}
+								className="w-full flex items-center justify-center gap-2 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+								<FiLock size={12} /> Change Password
+							</button>
+						) : (
+							<div className="space-y-2">
+								<p className="text-[10px] font-black text-rose-500 uppercase tracking-widest">
+									Reset Password
+								</p>
+								<div className="flex gap-2">
+									<input
+										type="text"
+										value={newPassword}
+										onChange={(e) => setNewPassword(e.target.value)}
+										placeholder="New password"
+										className="flex-1 px-3 py-2 border border-zinc-200 rounded-xl text-xs font-bold outline-none focus:border-indigo-400"
+									/>
+									<button
+										onClick={handleReset}
+										disabled={resetLoading || !newPassword}
+										className="px-4 py-2 bg-zinc-900 text-white rounded-xl text-xs font-black disabled:opacity-50">
+										{resetLoading ? "..." : "RESET"}
+									</button>
+									<button
+										onClick={() => setShowReset(false)}
+										className="p-2 text-zinc-400">
+										<FiX />
+									</button>
+								</div>
+							</div>
+						)}
+					</div>
+				)}
+
+				{/* Activation Actions */}
 				{user.role !== "admin" && (
 					<div className="px-6 pb-6 flex gap-3">
 						{actionLoading ? (
